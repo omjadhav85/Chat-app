@@ -78,3 +78,31 @@ export const fetchUserChatsController = expressAsyncHandler(
     res.send(data);
   }
 );
+
+export const createGroupChat = expressAsyncHandler(
+  async (req: Request, res: Response) => {
+    const userIds = req.body.userIds as ObjectId[];
+    const groupName = req.body.groupName as string;
+
+    if (!userIds || userIds.length < 2) {
+      res.status(400);
+      throw new Error(
+        "Minimum 2 users other than self are required to create a group chat"
+      );
+    }
+
+    if (!groupName) {
+      res.status(400);
+      throw new Error("Please give a name to the group");
+    }
+
+    const data = await Chat.create({
+      name: groupName,
+      groupAdmin: req.user._id,
+      isGroupChat: true,
+      users: userIds.concat(req.user._id),
+    });
+
+    res.send(data);
+  }
+);
