@@ -6,6 +6,7 @@ const chatSchema = new Schema(
       type: String,
       required: true,
     },
+    isGroupChat: { type: Boolean, default: false },
     latestMsg: {
       type: Schema.Types.ObjectId,
       ref: "Msg",
@@ -16,6 +17,7 @@ const chatSchema = new Schema(
         ref: "User",
       },
     ],
+    groupAdmin: { type: Schema.Types.ObjectId, ref: "User" },
   },
   {
     timestamps: true,
