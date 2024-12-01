@@ -12,7 +12,7 @@ export const authCheck = (req: Request, res: Response, next: NextFunction) => {
 
   const token = authHeader.split(" ")[1];
   try {
-    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET!);
     req.user = decodedToken; // Attach the decoded payload to the req object
     next();
   } catch (error) {

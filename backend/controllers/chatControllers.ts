@@ -19,7 +19,7 @@ export const accessChatController = expressAsyncHandler(
       $and: [
         {
           users: {
-            $elemMatch: { $eq: req.user._id },
+            $elemMatch: { $eq: req.user!._id },
           },
         },
         {
@@ -44,7 +44,7 @@ export const accessChatController = expressAsyncHandler(
     const chatData = {
       name: "sender",
       isGroupChat: false,
-      users: [req.user._id, personId],
+      users: [req.user!._id, personId],
     };
 
     try {
@@ -66,7 +66,7 @@ export const fetchUserChatsController = expressAsyncHandler(
     const data = await Chat.find({
       users: {
         $elemMatch: {
-          $eq: req.user._id,
+          $eq: req.user!._id,
         },
       },
     })
@@ -98,9 +98,9 @@ export const createGroupChat = expressAsyncHandler(
 
     const data = await Chat.create({
       name: groupName,
-      groupAdmin: req.user._id,
+      groupAdmin: req.user!._id,
       isGroupChat: true,
-      users: userIds.concat(req.user._id),
+      users: userIds.concat(req.user!._id),
     });
 
     res.send(data);
@@ -136,6 +136,54 @@ export const renameGroup = expressAsyncHandler(
       res.status(404);
       throw new Error("Chat with given Id not found!");
     }
+
+    res.send(data);
+  }
+);
+
+export const addToGroup = expressAsyncHandler(
+  async (req: Request, res: Response) => {
+    const groupId = req.body.groupId as ObjectId;
+    const userId = req.body.userId as ObjectId;
+
+    if (!groupId) {
+      res.status(400);
+      throw new Error("No group id sent in payload");
+    }
+
+    if (!userId) {
+      res.status(400);
+      throw new Error("User id missing in payload");
+    }
+
+    // check if logged in user is admin of the group or not
+
+    const groupData = await Chat.findById(groupId);
+
+    if (!groupData) {
+      res.status(404);
+      throw new Error("Group chat with given Id not found!");
+    }
+
+    const canUserAdd = groupData.groupAdmin?.equals(req.user!._id);
+    if (!canUserAdd) {
+      res.status(401);
+      throw new Error(
+        "You do not have permission to add members to this group!"
+      );
+    }
+
+    const data = await Chat.findByIdAndUpdate(
+      groupId,
+      {
+        $addToSet: {
+          users: userId,
+        },
+      },
+      {
+        new: true,
+      }
+    );
 
     res.send(data);
   }
