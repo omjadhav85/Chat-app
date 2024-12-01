@@ -106,3 +106,32 @@ export const createGroupChat = expressAsyncHandler(
     res.send(data);
   }
 );
+
+export const renameGroup = expressAsyncHandler(
+  async (req: Request, res: Response) => {
+    const groupId = req.body.groupId as ObjectId;
+    const newName = req.body.newName as string;
+
+    if (!groupId) {
+      res.status(400);
+      throw new Error("No group id sent in payload");
+    }
+
+    if (!newName) {
+      res.status(400);
+      throw new Error("Please give a name to the group");
+    }
+
+    const data = await Chat.findByIdAndUpdate(
+      groupId,
+      {
+        name: newName,
+      },
+      {
+        new: true,
+      }
+    );
+
+    res.send(data);
+  }
+);
