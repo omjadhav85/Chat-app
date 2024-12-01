@@ -132,6 +132,11 @@ export const renameGroup = expressAsyncHandler(
       }
     );
 
+    if (!data) {
+      res.status(404);
+      throw new Error("Chat with given Id not found!");
+    }
+
     res.send(data);
   }
 );
