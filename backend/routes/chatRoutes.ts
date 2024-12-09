@@ -5,6 +5,7 @@ import {
   addToGroup,
   createGroupChat,
   fetchUserChatsController,
+  removeFromGroup,
   renameGroup,
 } from "../controllers/chatControllers";
 
@@ -15,5 +16,5 @@ router.get("/", authCheck, fetchUserChatsController); // fetch all chats of user
 router.post("/group", authCheck, createGroupChat); // create group chat with given user ids and self
 router.patch("/rename", authCheck, renameGroup);
 router.put("/addToGroup", authCheck, addToGroup);
-// router.route("/groupremove").patch(protect, removeFromGroup);
+router.patch("/removeFromGroup", authCheck, removeFromGroup);
 export default router;

@@ -188,3 +188,51 @@ export const addToGroup = expressAsyncHandler(
     res.send(data);
   }
 );
+
+export const removeFromGroup = expressAsyncHandler(
+  async (req: Request, res: Response) => {
+    const groupId = req.body.groupId as ObjectId;
+    const userId = req.body.userId as ObjectId;
+
+    if (!groupId) {
+      res.status(400);
+      throw new Error("No group id sent in payload");
+    }
+
+    if (!userId) {
+      res.status(400);
+      throw new Error("User id missing in payload");
+    }
+
+    // check if logged in user is admin of the group or not
+
+    const groupData = await Chat.findById(groupId);
+
+    if (!groupData) {
+      res.status(404);
+      throw new Error("Group chat with given Id not found!");
+    }
+
+    const canUserAdd = groupData.groupAdmin?.equals(req.user!._id);
+    if (!canUserAdd) {
+      res.status(401);
+      throw new Error(
+        "You do not have permission to delete members from this group!"
+      );
+    }
+
+    const data = await Chat.findByIdAndUpdate(
+      groupId,
+      {
+        $pull: {
+          users: userId,
+        },
+      },
+      {
+        new: true,
+      }
+    );
+
+    res.send(data);
+  }
+);
