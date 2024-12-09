@@ -10,6 +10,7 @@ import { USER_DATA } from "@/lib/constants";
 import { useNavigate } from "react-router-dom";
 import { toaster } from "@/components/ui/toaster";
 import { useDataStore } from "@/store";
+import { showError } from "@/lib/utils";
 
 export const Login = () => {
   const navigate = useNavigate();
@@ -44,8 +45,9 @@ export const Login = () => {
         type: "success",
       });
       navigate("/chats");
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("error: ", err);
+      showError(err);
     }
 
     setLoading(false);
