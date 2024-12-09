@@ -9,6 +9,7 @@ import axiosClient from "@/config/axiosConfig";
 import { USER_DATA } from "@/lib/constants";
 import { useNavigate } from "react-router-dom";
 import { toaster } from "@/components/ui/toaster";
+import { useDataStore } from "@/store";
 
 export const Login = () => {
   const navigate = useNavigate();
@@ -17,6 +18,8 @@ export const Login = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [isShowPassword, setIsShowPassword] = useState(false);
+
+  const setStoreField = useDataStore((store) => store.setStoreField);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -34,8 +37,8 @@ export const Login = () => {
       );
 
       localStorage.setItem(USER_DATA, JSON.stringify(res.data));
+      setStoreField("user", res.data);
 
-      console.log("Res: ", res);
       toaster.create({
         title: `Login successful!`,
         type: "success",

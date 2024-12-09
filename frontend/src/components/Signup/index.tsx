@@ -12,6 +12,7 @@ import axiosClient from "@/config/axiosConfig";
 import { ISignUpReqDTO, ISignUpResponseDTO } from "@/components/Signup/types";
 import { useNavigate } from "react-router-dom";
 import { USER_DATA } from "@/lib/constants";
+import { useDataStore } from "@/store";
 
 interface IData {
   name: string;
@@ -34,6 +35,8 @@ export const Signup = () => {
   const [isShowPassword, setIsShowPassword] = useState(false);
   const [isShowConfirmPassword, setIsShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const setStoreField = useDataStore((store) => store.setStoreField);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -89,7 +92,7 @@ export const Signup = () => {
 
       localStorage.setItem(USER_DATA, JSON.stringify(res.data));
 
-      console.log("Res: ", res);
+      setStoreField("user", res.data);
       navigate("/chats");
       toaster.create({
         title: `Sign up successful!`,
