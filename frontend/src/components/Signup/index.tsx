@@ -36,7 +36,7 @@ export const Signup = () => {
   const [isShowConfirmPassword, setIsShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const setStoreField = useDataStore((store) => store.setStoreField);
+  const setStoreField = useDataStore((store) => store.actions.setStoreField);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setData((prev) => ({ ...prev, [e.target.name]: e.target.value }));

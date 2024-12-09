@@ -16,15 +16,16 @@ const initialState: IStore = {
 // create store
 export const useDataStore = create<IStore & IActions>()((set, get) => ({
   ...initialState,
+  actions: {
+    reset: () => {
+      set({ ...initialState, user: null });
+    },
 
-  reset: () => {
-    set({ ...initialState, user: null });
-  },
-
-  setStoreField: (key, value) => {
-    set((state) => ({
-      ...state,
-      [key]: value,
-    }));
+    setStoreField: (key, value) => {
+      set((state) => ({
+        ...state,
+        [key]: value,
+      }));
+    },
   },
 }));

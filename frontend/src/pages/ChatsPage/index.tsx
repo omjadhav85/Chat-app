@@ -10,7 +10,13 @@ export const ChatsPage = () => {
   return (
     <Box>
       {!!user && <Header />}
-      <Box display="flex" gap="1rem" bgColor="aliceblue">
+      <Box
+        display="flex"
+        gap="1rem"
+        bgColor="#F3F6FF"
+        padding="1rem"
+        height="calc(100vh - 3.25rem)"
+      >
         <ChatList />
         <ChatBox />
       </Box>

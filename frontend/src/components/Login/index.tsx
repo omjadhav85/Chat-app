@@ -19,7 +19,7 @@ export const Login = () => {
   const [loading, setLoading] = useState(false);
   const [isShowPassword, setIsShowPassword] = useState(false);
 
-  const setStoreField = useDataStore((store) => store.setStoreField);
+  const setStoreField = useDataStore((store) => store.actions.setStoreField);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

@@ -6,6 +6,8 @@ export interface IStore {
 }
 
 export interface IActions {
-  reset: () => void;
-  setStoreField: <K extends keyof IStore>(key: K, value: IStore[K]) => void;
+  actions: {
+    reset: () => void;
+    setStoreField: <K extends keyof IStore>(key: K, value: IStore[K]) => void;
+  };
 }
