@@ -68,7 +68,6 @@ export const Signup = () => {
           "https://api.cloudinary.com/v1_1/omjcloud/image/upload",
           formData
         );
-        console.log("Img uploaded: ", response.data.url.toString());
         imgUrl = response.data.url.toString();
       } else {
         toaster.create({

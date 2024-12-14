@@ -3,7 +3,6 @@ import User from "../models/user";
 
 export const getAllUsersController = async (req: Request, res: Response) => {
   const search = req.query.search as string | null;
-  console.log("req.user._id: ", req.user._id);
   const query = search
     ? {
         $or: [

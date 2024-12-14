@@ -7,8 +7,6 @@ export const accessChatController = expressAsyncHandler(
   async (req: Request, res: Response) => {
     const personId = req.body.id as ObjectId;
 
-    console.log("personId", personId);
-
     if (!personId) {
       res.status(400);
       throw new Error("Person id not sent in req body");
@@ -31,8 +29,6 @@ export const accessChatController = expressAsyncHandler(
     })
       .populate("users", "-password")
       .populate("latestMsg");
-
-    console.log("existingChat: ", existingChat);
 
     if (existingChat.length > 0) {
       res.status(200).send(existingChat[0]);

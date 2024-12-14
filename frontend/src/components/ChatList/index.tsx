@@ -1,4 +1,4 @@
-import { SearchUsers } from "@/components/ChatList/components/SearchUsers";
+import { UserChatList } from "@/components/ChatList/components/UserChatList";
 import { TitleAndActions } from "@/components/ChatList/components/TitleAndActions";
 import { Stack } from "@chakra-ui/react";
 
@@ -12,7 +12,7 @@ export const ChatList = () => {
       p="4"
     >
       <TitleAndActions />
-      <SearchUsers />
+      <UserChatList />
     </Stack>
   );
 };

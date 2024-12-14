@@ -11,6 +11,7 @@ const getInitialUserState = () => {
 // define the initial state
 const initialState: IStore = {
   user: getInitialUserState(),
+  userChats: [],
 };
 
 // create store
