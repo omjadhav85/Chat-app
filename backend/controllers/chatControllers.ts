@@ -98,8 +98,11 @@ export const createGroupChat = expressAsyncHandler(
       isGroupChat: true,
       users: userIds.concat(req.user!._id),
     });
+    const fullChat = await Chat.findById(data._id)
+      .populate("users", "-password")
+      .populate("groupAdmin", "-password");
 
-    res.send(data);
+    res.send(fullChat);
   }
 );
 

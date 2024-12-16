@@ -5,14 +5,18 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 export const useSearchUsers = () => {
   const [users, setUsers] = useState<IUser[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const timerId = useRef<NodeJS.Timeout | null>(null);
 
   const fetchUsersBySearch = useCallback(async (searchText: string) => {
     if (timerId.current) clearTimeout(timerId.current);
+    setIsLoading(true);
 
     if (searchText.trim() === "") {
       setUsers([]);
+      setIsLoading(false);
+
       return;
     }
 
@@ -27,6 +31,8 @@ export const useSearchUsers = () => {
         setUsers(res?.data || []);
       } catch (error) {
         showError(error);
+      } finally {
+        setIsLoading(false);
       }
     }, 500);
   }, []);
@@ -37,5 +43,5 @@ export const useSearchUsers = () => {
     };
   }, []);
 
-  return { users, fetchUsersBySearch };
+  return { users, fetchUsersBySearch, isLoading };
 };

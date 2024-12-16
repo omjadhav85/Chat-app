@@ -10,9 +10,11 @@ import {
 
 import { useState } from "react";
 import { UsersDrawer } from "@/components/ChatList/components/UsersDrawer";
+import { GroupChatModal } from "@/components/ChatList/components/GroupChatModal";
 
 export const TitleAndActions = () => {
   const [isUsersDrawerOpen, setIsUsersDrawerOpen] = useState(false);
+  const [isGroupChatModalOpen, setIsGroupChatModalOpen] = useState(false);
 
   return (
     <>
@@ -33,7 +35,11 @@ export const TitleAndActions = () => {
             >
               New chat
             </MenuItem>
-            <MenuItem value="new-group-chat" cursor="pointer">
+            <MenuItem
+              value="new-group-chat"
+              cursor="pointer"
+              onClick={() => setIsGroupChatModalOpen(true)}
+            >
               New group chat
             </MenuItem>
           </MenuContent>
@@ -43,6 +49,12 @@ export const TitleAndActions = () => {
         <UsersDrawer
           isOpen={isUsersDrawerOpen}
           onChange={(e) => setIsUsersDrawerOpen(e.open)}
+        />
+      )}
+      {isGroupChatModalOpen && (
+        <GroupChatModal
+          isOpen={isGroupChatModalOpen}
+          onClose={() => setIsGroupChatModalOpen(false)}
         />
       )}
     </>

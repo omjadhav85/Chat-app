@@ -28,5 +28,12 @@ export const useDataStore = create<IStore & IActions>()((set, get) => ({
         [key]: value,
       }));
     },
+
+    addChat: (newChat) => {
+      set((state) => ({
+        ...state,
+        userChats: [newChat, ...state.userChats],
+      }));
+    },
   },
 }));

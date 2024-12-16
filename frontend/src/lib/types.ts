@@ -12,13 +12,22 @@ export interface IUser {
   token: string;
 }
 
+export interface IMessage {
+  content: string;
+  sentBy: IUser;
+  chatId: IChat;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface IChat {
   _id: string;
   name: string;
   isGroupChat: boolean;
   users: IUser[];
   groupAdmin: IUser;
-  createdAt: string; // ISO date string
-  updatedAt: string; // ISO date string
+  createdAt: string;
+  updatedAt: string;
+  latestMsg: IMessage | null;
   __v: number;
 }
