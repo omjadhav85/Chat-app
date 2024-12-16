@@ -1,29 +1,22 @@
 import {
-  DrawerActionTrigger,
   DrawerBackdrop,
   DrawerBody,
   DrawerCloseTrigger,
   DrawerContent,
-  DrawerFooter,
   DrawerHeader,
   DrawerRoot,
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { InputGroup } from "@/components/ui/input-group";
-import {
-  DrawerOpenChangeDetails,
-  Input,
-  Separator,
-  VStack,
-} from "@chakra-ui/react";
-import { useEffect, useRef, useState } from "react";
+import { DrawerOpenChangeDetails, Input, VStack } from "@chakra-ui/react";
+import { useEffect, useState } from "react";
 import { LuSearch } from "react-icons/lu";
 import axiosClient from "@/config/axiosConfig";
 import { showError } from "@/lib/utils";
-import { AxiosResponse } from "axios";
 import { IChat, IUser } from "@/lib/types";
 import { UserListItem } from "@/components/ChatList/components/UserListItem";
 import { useDataStore } from "@/store";
+import { useSearchUsers } from "@/hooks/useSearchUsers";
 
 interface IProps {
   isOpen: boolean;
@@ -31,14 +24,12 @@ interface IProps {
 }
 
 export const UsersDrawer = ({ isOpen, onChange }: IProps) => {
-  const [searchText, setSearchText] = useState("");
   const [tempText, setTempText] = useState("");
-  const [users, setUsers] = useState<IUser[]>([]);
 
   const userChats = useDataStore((store) => store.userChats);
   const setStoreField = useDataStore((store) => store.actions.setStoreField);
 
-  const timerId = useRef<NodeJS.Timeout | null>(null);
+  const { users, fetchUsersBySearch } = useSearchUsers();
 
   const handleSelectUser = async (selectedUser: IUser) => {
     try {
@@ -55,39 +46,8 @@ export const UsersDrawer = ({ isOpen, onChange }: IProps) => {
   };
 
   useEffect(() => {
-    if (timerId.current) clearTimeout(timerId.current);
-
-    timerId.current = setTimeout(() => {
-      setSearchText(tempText);
-    }, 500);
-
-    return () => {
-      if (timerId.current) clearTimeout(timerId.current);
-    };
-  }, [tempText]);
-
-  useEffect(() => {
-    const fetchUsersBySearch = async () => {
-      if (searchText.trim() === "") {
-        setUsers([]);
-        return;
-      }
-
-      try {
-        const res = await axiosClient.get<IUser[]>("/api/users", {
-          params: {
-            search: searchText,
-          },
-        });
-
-        setUsers(res?.data || []);
-      } catch (error) {
-        showError(error);
-      }
-    };
-
-    fetchUsersBySearch();
-  }, [searchText]);
+    fetchUsersBySearch(tempText);
+  }, [fetchUsersBySearch, tempText]);
 
   return (
     <DrawerRoot open={isOpen} onOpenChange={onChange} placement="start">
