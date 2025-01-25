@@ -9,7 +9,7 @@ const chatSchema = new Schema(
     isGroupChat: { type: Boolean, default: false },
     latestMsg: {
       type: Schema.Types.ObjectId,
-      ref: "Msg",
+      ref: "Message",
     },
     users: [
       {

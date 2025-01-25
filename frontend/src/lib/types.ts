@@ -13,6 +13,7 @@ export interface IUser {
 }
 
 export interface IMessage {
+  _id: string;
   content: string;
   sentBy: IUser;
   chatId: IChat;

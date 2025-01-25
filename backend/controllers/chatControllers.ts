@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import expressAsyncHandler from "express-async-handler";
 import Chat from "../models/chat";
 import { ObjectId } from "mongoose";
+import User from "../models/user";
 
 export const accessChatController = expressAsyncHandler(
   async (req: Request, res: Response) => {
@@ -59,7 +60,7 @@ export const accessChatController = expressAsyncHandler(
 
 export const fetchUserChatsController = expressAsyncHandler(
   async (req: Request, res: Response) => {
-    const data = await Chat.find({
+    let data = await Chat.find({
       users: {
         $elemMatch: {
           $eq: req.user!._id,
@@ -70,6 +71,11 @@ export const fetchUserChatsController = expressAsyncHandler(
       .populate("groupAdmin", "-password")
       .populate("latestMsg")
       .sort({ updatedAt: -1 });
+
+    data = await User.populate(data, {
+      path: "latestMsg.sentBy",
+      select: "name pic email",
+    });
 
     res.send(data);
   }

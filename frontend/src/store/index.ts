@@ -12,6 +12,7 @@ const getInitialUserState = () => {
 const initialState: IStore = {
   user: getInitialUserState(),
   userChats: [],
+  selectedChat: null,
 };
 
 // create store
@@ -33,6 +34,12 @@ export const useDataStore = create<IStore & IActions>()((set, get) => ({
       set((state) => ({
         ...state,
         userChats: [newChat, ...state.userChats],
+      }));
+    },
+    setSelectedChat: (chat) => {
+      set((state) => ({
+        ...state,
+        selectedChat: state.selectedChat?._id === chat._id ? null : chat,
       }));
     },
   },

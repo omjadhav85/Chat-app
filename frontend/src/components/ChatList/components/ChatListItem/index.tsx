@@ -1,6 +1,6 @@
 import { Avatar } from "@/components/ui/avatar";
 import { IChat } from "@/lib/types";
-import { useDataStore } from "@/store";
+import { getChatName } from "@/lib/utils";
 import { Flex, Heading, Text, VStack } from "@chakra-ui/react";
 
 interface Props {
@@ -9,12 +9,6 @@ interface Props {
 }
 
 export const ChatListItem = ({ chat, onClick }: Props) => {
-  const user = useDataStore((store) => store.user);
-
-  const getChatName = (chat: IChat) => {
-    return chat.users.find((u) => u._id !== user?._id)?.name;
-  };
-
   return (
     <Flex
       alignItems="center"
@@ -31,9 +25,7 @@ export const ChatListItem = ({ chat, onClick }: Props) => {
     >
       <Avatar name={chat?.name} src={""} />
       <VStack justifyContent="space-between" alignItems="flex-start">
-        <Heading size="sm">
-          {chat.isGroupChat ? chat.name : getChatName(chat)}
-        </Heading>
+        <Heading size="sm">{getChatName(chat)}</Heading>
         <Text fontSize="xs">{chat.latestMsg?.content || "Start chat..."}</Text>
       </VStack>
     </Flex>

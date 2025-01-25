@@ -11,6 +11,13 @@ import { LuSearch } from "react-icons/lu";
 export const UserChatList = () => {
   const userChats = useDataStore((store) => store.userChats);
   const setStoreField = useDataStore((store) => store.actions.setStoreField);
+  const setSelectedChat = useDataStore(
+    (store) => store.actions.setSelectedChat
+  );
+
+  const handleSelectChat = (chat: IChat) => {
+    setSelectedChat(chat);
+  };
 
   useEffect(() => {
     const fetchUserChats = async () => {
@@ -39,7 +46,13 @@ export const UserChatList = () => {
 
       <VStack overflow="auto" gap={2}>
         {userChats.map((chat) => {
-          return <ChatListItem key={chat._id} chat={chat} onClick={() => {}} />;
+          return (
+            <ChatListItem
+              key={chat._id}
+              chat={chat}
+              onClick={handleSelectChat}
+            />
+          );
         })}
       </VStack>
     </>
