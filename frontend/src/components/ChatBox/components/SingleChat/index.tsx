@@ -1,7 +1,13 @@
+import { Message } from "@/components/ChatBox/components/Message";
 import { InputGroup } from "@/components/ui/input-group";
 import axiosClient from "@/config/axiosConfig";
 import { IMessage } from "@/lib/types";
-import { getChatName, showError } from "@/lib/utils";
+import {
+  getChatName,
+  hasSentByChanged,
+  isLoggedInUser,
+  showError,
+} from "@/lib/utils";
 import { useDataStore } from "@/store";
 import { Flex, Heading, Input, VStack } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
@@ -72,7 +78,14 @@ export const SingleChat = () => {
         <Flex direction="column" overflowY="auto" scrollbarWidth="none">
           <ScrollableFeed>
             {messages.map((item, i) => (
-              <div key={i}>{item.content}</div>
+              <Message
+                message={item}
+                key={item._id}
+                showAvatar={
+                  !isLoggedInUser(item.sentBy) &&
+                  hasSentByChanged(item, messages[i - 1])
+                }
+              />
             ))}
           </ScrollableFeed>
         </Flex>
