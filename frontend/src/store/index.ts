@@ -1,4 +1,7 @@
+import axiosClient from "@/config/axiosConfig";
 import { USER_DATA } from "@/lib/constants";
+import { IChat } from "@/lib/types";
+import { showError } from "@/lib/utils";
 import { IActions, IStore } from "@/store/types";
 import { create } from "zustand";
 
@@ -41,6 +44,19 @@ export const useDataStore = create<IStore & IActions>()((set, get) => ({
         ...state,
         selectedChat: state.selectedChat?._id === chat._id ? null : chat,
       }));
+    },
+
+    refreshUserChats: async () => {
+      try {
+        const res = await axiosClient.get<IChat[]>("/api/chats");
+
+        set((state) => ({
+          ...state,
+          userChats: res.data || [],
+        }));
+      } catch (error) {
+        showError(error);
+      }
     },
   },
 }));

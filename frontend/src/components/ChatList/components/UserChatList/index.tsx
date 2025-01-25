@@ -1,8 +1,6 @@
 import { ChatListItem } from "@/components/ChatList/components/ChatListItem";
 import { InputGroup } from "@/components/ui/input-group";
-import axiosClient from "@/config/axiosConfig";
 import { IChat } from "@/lib/types";
-import { showError } from "@/lib/utils";
 import { useDataStore } from "@/store";
 import { Input, VStack } from "@chakra-ui/react";
 import { useEffect } from "react";
@@ -10,7 +8,9 @@ import { LuSearch } from "react-icons/lu";
 
 export const UserChatList = () => {
   const userChats = useDataStore((store) => store.userChats);
-  const setStoreField = useDataStore((store) => store.actions.setStoreField);
+  const refreshUserChats = useDataStore(
+    (store) => store.actions.refreshUserChats
+  );
   const setSelectedChat = useDataStore(
     (store) => store.actions.setSelectedChat
   );
@@ -20,17 +20,7 @@ export const UserChatList = () => {
   };
 
   useEffect(() => {
-    const fetchUserChats = async () => {
-      try {
-        const res = await axiosClient.get<IChat[]>("/api/chats");
-
-        setStoreField("userChats", res.data || []);
-      } catch (error) {
-        showError(error);
-      }
-    };
-
-    fetchUserChats();
+    refreshUserChats();
   }, []);
   return (
     <>

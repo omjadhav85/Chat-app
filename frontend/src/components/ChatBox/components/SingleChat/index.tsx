@@ -3,7 +3,7 @@ import axiosClient from "@/config/axiosConfig";
 import { IMessage } from "@/lib/types";
 import { getChatName, showError } from "@/lib/utils";
 import { useDataStore } from "@/store";
-import { Flex, Heading, Input, Text, VStack } from "@chakra-ui/react";
+import { Flex, Heading, Input, VStack } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import { IoArrowForwardCircleSharp } from "react-icons/io5";
 import ScrollableFeed from "react-scrollable-feed";
@@ -13,10 +13,11 @@ export const SingleChat = () => {
   const [text, setText] = useState("");
 
   const selectedChat = useDataStore((state) => state.selectedChat);
+  const refreshUserChats = useDataStore(
+    (state) => state.actions.refreshUserChats
+  );
 
-  const handleEnter = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key !== "Enter") return;
-
+  const sendMsg = async () => {
     setText("");
     try {
       const res = await axiosClient.post<IMessage>(`/api/messages`, {
@@ -24,10 +25,16 @@ export const SingleChat = () => {
         chatId: selectedChat?._id,
       });
       setMessages((prev) => [...prev, res.data]);
-      // TODO: call getChats here to refresh chats
+      refreshUserChats();
     } catch (error) {
       showError(error);
     }
+  };
+
+  const handleEnter = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== "Enter") return;
+
+    sendMsg();
   };
 
   useEffect(() => {
@@ -69,7 +76,15 @@ export const SingleChat = () => {
             ))}
           </ScrollableFeed>
         </Flex>
-        <InputGroup endElement={<IoArrowForwardCircleSharp size={30} />}>
+        <InputGroup
+          endElement={
+            <IoArrowForwardCircleSharp
+              size={30}
+              cursor="pointer"
+              onClick={() => sendMsg()}
+            />
+          }
+        >
           <Input
             placeholder="Enter message"
             borderRadius="4xl"

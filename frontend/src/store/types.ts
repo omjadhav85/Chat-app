@@ -13,5 +13,6 @@ export interface IActions {
     setStoreField: <K extends keyof IStore>(key: K, value: IStore[K]) => void;
     addChat: (newChat: IChat) => void;
     setSelectedChat: (chat: IChat) => void;
+    refreshUserChats: () => Promise<void>;
   };
 }
