@@ -57,9 +57,9 @@ io.on("connection", (socket) => {
   });
 
   socket.on("typing start", (chatId) => {
-    socket.to(chatId).emit("typing start");
+    socket.to(chatId).emit("typing start", chatId);
   });
   socket.on("typing stop", (chatId) => {
-    socket.to(chatId).emit("typing stop");
+    socket.to(chatId).emit("typing stop", chatId);
   });
 });

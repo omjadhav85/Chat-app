@@ -100,9 +100,20 @@ export const SingleChat = () => {
   }, [isSocketConnected, selectedChat?._id]);
 
   useEffect(() => {
-    socket.on("typing start", () => setIsTyping(true));
-    socket.on("typing stop", () => setIsTyping(false));
-  }, []);
+    socket.on(
+      "typing start",
+      (chatId) => selectedChat?._id === chatId && setIsTyping(true)
+    );
+    socket.on(
+      "typing stop",
+      (chatId) => selectedChat?._id === chatId && setIsTyping(false)
+    );
+
+    return () => {
+      socket.off("typing start");
+      socket.off("typing stop");
+    };
+  }, [selectedChat?._id]);
 
   return (
     <Flex direction="column" gap={4} height="full">
