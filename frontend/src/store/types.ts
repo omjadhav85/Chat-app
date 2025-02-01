@@ -1,4 +1,4 @@
-import { IChat, IUser } from "@/lib/types";
+import { IChat, IMessage, IUser } from "@/lib/types";
 
 // define types for state values and actions separately
 export interface IStore {
@@ -6,6 +6,7 @@ export interface IStore {
   userChats: IChat[];
   selectedChat: IChat | null;
   isSocketConnected: boolean;
+  notifications: IMessage[];
 }
 
 export interface IActions {

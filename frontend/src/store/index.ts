@@ -17,6 +17,7 @@ const initialState: IStore = {
   userChats: [],
   selectedChat: null,
   isSocketConnected: false,
+  notifications: [],
 };
 
 // create store

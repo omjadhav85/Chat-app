@@ -1,5 +1,6 @@
+import { NotificationBell } from "@/components/Header/NotificationBell";
 import { UserOptions } from "@/components/Header/UserOptions";
-import { Box, Heading } from "@chakra-ui/react";
+import { Box, Flex, Heading } from "@chakra-ui/react";
 
 export const Header = () => {
   return (
@@ -11,7 +12,10 @@ export const Header = () => {
       p="0.5rem"
     >
       <Heading>Chattify</Heading>
-      <UserOptions />
+      <Flex gap={2} align="center">
+        <NotificationBell />
+        <UserOptions />
+      </Flex>
     </Box>
   );
 };

@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import expressAsyncHandler from "express-async-handler";
 import Message from "../models/message";
 import Chat from "../models/chat";
+import User from "../models/user";
 
 export const sendMsgController = expressAsyncHandler(
   async (req: Request, res: Response) => {
@@ -18,7 +19,12 @@ export const sendMsgController = expressAsyncHandler(
       let newMsg = await Message.create(msgData);
 
       newMsg = await newMsg.populate("sentBy", "name pic email");
-      newMsg = await newMsg.populate("chatId", "users groupAdmin");
+      newMsg = await newMsg.populate("chatId");
+
+      newMsg = await User.populate(newMsg, {
+        path: "chatId.users",
+        select: "name pic email",
+      });
 
       await Chat.findByIdAndUpdate(chatId, { latestMsg: newMsg });
 

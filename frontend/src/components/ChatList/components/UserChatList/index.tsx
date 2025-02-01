@@ -12,6 +12,7 @@ export const UserChatList = () => {
   const userChats = useDataStore((store) => store.userChats);
   const isSocketConnected = useDataStore((store) => store.isSocketConnected);
   const selectedChat = useDataStore((store) => store.selectedChat);
+  const notifications = useDataStore((store) => store.notifications);
 
   const refreshUserChats = useDataStore(
     (store) => store.actions.refreshUserChats
@@ -19,6 +20,7 @@ export const UserChatList = () => {
   const setSelectedChat = useDataStore(
     (store) => store.actions.setSelectedChat
   );
+  const setStoreField = useDataStore((store) => store.actions.setStoreField);
 
   const handleSelectChat = (chat: IChat) => {
     setSelectedChat(chat);
@@ -40,7 +42,7 @@ export const UserChatList = () => {
         return;
       }
 
-      // TODO: add to notification here
+      setStoreField("notifications", [...notifications, msg]);
     };
     if (isSocketConnected) {
       socket.on("receive msg", handleReceiveMsg);
@@ -49,7 +51,7 @@ export const UserChatList = () => {
     return () => {
       socket.off("receive msg", handleReceiveMsg);
     };
-  }, [isSocketConnected, selectedChat?._id]);
+  }, [isSocketConnected, notifications, selectedChat?._id, setStoreField]);
   return (
     <>
       <InputGroup endElement={<LuSearch />}>
