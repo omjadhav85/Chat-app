@@ -241,3 +241,54 @@ export const removeFromGroup = expressAsyncHandler(
     res.send(data);
   }
 );
+
+export const updateGroupController = expressAsyncHandler(
+  async (req: Request, res: Response) => {
+    const groupId = req.body.groupId as ObjectId;
+    const userIds = req.body.userIds as ObjectId[];
+    const groupName = req.body.name as string;
+
+    if (!groupId) {
+      res.status(400);
+      throw new Error("No group id sent in payload");
+    }
+
+    if (!userIds || !Array.isArray(userIds)) {
+      res.status(400);
+      throw new Error("Updated members list is missing or invalid");
+    }
+
+    if (!groupName) {
+      res.status(400);
+      throw new Error("Group must have a name");
+    }
+
+    // Fetch group data to check admin permissions
+    const groupData = await Chat.findById(groupId);
+
+    if (!groupData) {
+      res.status(404);
+      throw new Error("Group chat with given Id not found!");
+    }
+
+    const isAdmin = groupData.groupAdmin?.equals(req.user!._id);
+    if (!isAdmin) {
+      res.status(401);
+      throw new Error("You do not have permission to update this group!");
+    }
+
+    // Update group members
+    const updatedGroup = await Chat.findByIdAndUpdate(
+      groupId,
+      {
+        $set: { users: userIds, name: groupName },
+      },
+      { new: true }
+    )
+      .populate("users", "-password")
+      .populate("groupAdmin", "-password")
+      .populate("latestMsg");
+
+    res.send(updatedGroup);
+  }
+);

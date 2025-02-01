@@ -5,22 +5,28 @@ import { socket } from "@/config/socketConfig";
 import { IMessage } from "@/lib/types";
 import {
   getChatName,
+  getOtherChatUser,
   hasSentByChanged,
   isLoggedInUser,
   showError,
 } from "@/lib/utils";
 import { useDataStore } from "@/store";
-import { Flex, Heading, Input, VStack } from "@chakra-ui/react";
+import { Flex, Heading, IconButton, Input, VStack } from "@chakra-ui/react";
 import React, { useEffect, useRef, useState } from "react";
 import { IoArrowForwardCircleSharp } from "react-icons/io5";
 import ScrollableFeed from "react-scrollable-feed";
 import Lottie from "lottie-react";
 import typingAnimation from "@/animations/typing-animation.json";
+import { FiEdit, FiEye } from "react-icons/fi";
+import { UserProfileModal } from "@/components/UserProfileModal";
+import { GroupChatModal } from "@/components/ChatList/components/GroupChatModal";
 
 export const SingleChat = () => {
   const [messages, setMessages] = useState<IMessage[]>([]);
   const [text, setText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [isProfileModelOpen, setIsProfileModelOpen] = useState(false);
+  const [isUpdateGroupModalOpen, setIsUpdateGroupModalOpen] = useState(false);
 
   const selectedChat = useDataStore((state) => state.selectedChat);
   const isSocketConnected = useDataStore((state) => state.isSocketConnected);
@@ -116,66 +122,96 @@ export const SingleChat = () => {
   }, [selectedChat?._id]);
 
   return (
-    <Flex direction="column" gap={4} height="full">
-      <Flex justify="space-between">
-        <Heading>{selectedChat && getChatName(selectedChat)}</Heading>
-      </Flex>
-      <VStack
-        flex={1}
-        bgColor="#F3F6FF"
-        borderRadius="4xl"
-        justify="space-between"
-        overflow="auto"
-        p={2}
-        alignItems="stretch"
-      >
-        <Flex direction="column" overflowY="auto" scrollbarWidth="none">
-          <ScrollableFeed>
-            {messages.map((item, i) => (
-              <Message
-                message={item}
-                key={item._id}
-                showAvatar={
-                  !isLoggedInUser(item.sentBy) &&
-                  hasSentByChanged(item, messages[i - 1])
-                }
-              />
-            ))}
-            {isTyping && (
-              <Lottie
-                animationData={typingAnimation}
-                loop={true}
-                style={{
-                  height: 80,
-                  width: 100,
-                  marginTop: "-20px",
-                }}
-              />
-            )}
-          </ScrollableFeed>
+    <>
+      <Flex direction="column" gap={4} height="full">
+        <Flex justify="space-between" align="center">
+          <Heading>{selectedChat && getChatName(selectedChat)}</Heading>
+          {selectedChat?.isGroupChat ? (
+            <IconButton
+              variant="ghost"
+              onClick={() => setIsUpdateGroupModalOpen(true)}
+            >
+              <FiEdit />
+            </IconButton>
+          ) : (
+            <IconButton
+              variant="ghost"
+              onClick={() => setIsProfileModelOpen(true)}
+            >
+              <FiEye />
+            </IconButton>
+          )}
         </Flex>
-        <InputGroup
-          endElement={
-            <IoArrowForwardCircleSharp
-              size={30}
-              cursor="pointer"
-              onClick={() => sendMsg()}
-            />
-          }
+        <VStack
+          flex={1}
+          bgColor="#F3F6FF"
+          borderRadius="4xl"
+          justify="space-between"
+          overflow="auto"
+          p={2}
+          alignItems="stretch"
         >
-          <Input
-            placeholder="Enter message"
-            borderRadius="4xl"
-            backgroundColor="white"
-            outline="none"
-            border="none"
-            w="full"
-            value={text}
-            onChange={handleMessageChange}
-            onKeyDown={handleEnter}
-          />
-        </InputGroup>
-      </VStack>
-    </Flex>
+          <Flex direction="column" overflowY="auto" scrollbarWidth="none">
+            <ScrollableFeed>
+              {messages.map((item, i) => (
+                <Message
+                  message={item}
+                  key={item._id}
+                  showAvatar={
+                    !isLoggedInUser(item.sentBy) &&
+                    hasSentByChanged(item, messages[i - 1])
+                  }
+                />
+              ))}
+              {isTyping && (
+                <Lottie
+                  animationData={typingAnimation}
+                  loop={true}
+                  style={{
+                    height: 80,
+                    width: 100,
+                    marginTop: "-20px",
+                  }}
+                />
+              )}
+            </ScrollableFeed>
+          </Flex>
+          <InputGroup
+            endElement={
+              <IoArrowForwardCircleSharp
+                size={30}
+                cursor="pointer"
+                onClick={() => sendMsg()}
+              />
+            }
+          >
+            <Input
+              placeholder="Enter message"
+              borderRadius="4xl"
+              backgroundColor="white"
+              outline="none"
+              border="none"
+              w="full"
+              value={text}
+              onChange={handleMessageChange}
+              onKeyDown={handleEnter}
+            />
+          </InputGroup>
+        </VStack>
+      </Flex>
+
+      <UserProfileModal
+        isOpen={isProfileModelOpen}
+        user={getOtherChatUser(selectedChat!)!}
+        onChange={(e) => setIsProfileModelOpen(e.open)}
+      />
+      {isUpdateGroupModalOpen && (
+        <GroupChatModal
+          isOpen={isUpdateGroupModalOpen}
+          onClose={() => setIsUpdateGroupModalOpen(false)}
+          existingGroupChat={selectedChat!}
+        />
+      )}
+    </>
   );
 };

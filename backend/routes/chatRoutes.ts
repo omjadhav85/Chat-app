@@ -7,6 +7,7 @@ import {
   fetchUserChatsController,
   removeFromGroup,
   renameGroup,
+  updateGroupController,
 } from "../controllers/chatControllers";
 
 const router = express.Router();
@@ -16,5 +17,6 @@ router.get("/", authCheck, fetchUserChatsController); // fetch all chats of user
 router.post("/group", authCheck, createGroupChat); // create group chat with given user ids and self
 router.patch("/rename", authCheck, renameGroup);
 router.put("/addToGroup", authCheck, addToGroup);
+router.put("/updateGroup", authCheck, updateGroupController);
 router.patch("/removeFromGroup", authCheck, removeFromGroup);
 export default router;

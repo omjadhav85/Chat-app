@@ -22,17 +22,27 @@ import { useDataStore } from "@/store";
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  existingGroupChat?: IChat;
 }
 
-export const GroupChatModal = ({ isOpen, onClose }: Props) => {
+export const GroupChatModal = ({
+  isOpen,
+  onClose,
+  existingGroupChat,
+}: Props) => {
   const [name, setName] = useState("");
   const [searchText, setSearchText] = useState("");
   const [selectedUsers, setSelectedUsers] = useState<IUser[]>([]);
   const [isCreating, setIsCreating] = useState(false);
+  const [isUpdateMode, setIsUpdateMode] = useState(false);
 
   const { fetchUsersBySearch, users, isLoading } = useSearchUsers();
 
   const addChat = useDataStore((store) => store.actions.addChat);
+  const refreshUserChats = useDataStore(
+    (store) => store.actions.refreshUserChats
+  );
+  const setStoreField = useDataStore((store) => store.actions.setStoreField);
 
   const filteredUsers = useMemo(
     () =>
@@ -75,12 +85,23 @@ export const GroupChatModal = ({ isOpen, onClose }: Props) => {
 
     try {
       setIsCreating(true);
-      const res = await axiosClient.post<IChat>("/api/chats/group", {
-        groupName: name,
-        userIds: selectedUsers.map((obj) => obj._id),
-      });
+      if (isUpdateMode) {
+        const res = await axiosClient.put<IChat>("/api/chats/updateGroup", {
+          groupId: existingGroupChat?._id,
+          name: name,
+          userIds: selectedUsers.map((obj) => obj._id),
+        });
 
-      addChat(res.data);
+        setStoreField("selectedChat", res.data);
+        refreshUserChats();
+      } else {
+        const res = await axiosClient.post<IChat>("/api/chats/group", {
+          groupName: name,
+          userIds: selectedUsers.map((obj) => obj._id),
+        });
+
+        addChat(res.data);
+      }
       handleClose();
     } catch (error) {
       showError(error);
@@ -93,6 +114,14 @@ export const GroupChatModal = ({ isOpen, onClose }: Props) => {
     fetchUsersBySearch(searchText);
   }, [searchText]);
 
+  useEffect(() => {
+    if (existingGroupChat) {
+      setIsUpdateMode(true);
+      setName(existingGroupChat.name);
+      setSelectedUsers(existingGroupChat.users);
+    }
+  }, [existingGroupChat]);
+
   return (
     <DialogRoot
       lazyMount
@@ -101,7 +130,9 @@ export const GroupChatModal = ({ isOpen, onClose }: Props) => {
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>New Group chat</DialogTitle>
+          <DialogTitle>
+            {isUpdateMode ? "Update Group" : "New Group chat"}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleCreate}>
           <DialogBody gap={4}>
@@ -150,7 +181,7 @@ export const GroupChatModal = ({ isOpen, onClose }: Props) => {
               </Button>
             </DialogActionTrigger>
             <Button type="submit" loading={isCreating} disabled={isCreating}>
-              Create
+              {isUpdateMode ? "Update" : "Create"}
             </Button>
           </DialogFooter>
         </form>
