@@ -11,15 +11,20 @@ import {
 } from "@/lib/utils";
 import { useDataStore } from "@/store";
 import { Flex, Heading, Input, VStack } from "@chakra-ui/react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { IoArrowForwardCircleSharp } from "react-icons/io5";
 import ScrollableFeed from "react-scrollable-feed";
+import Lottie from "lottie-react";
+import typingAnimation from "@/animations/typing-animation.json";
 
 export const SingleChat = () => {
   const [messages, setMessages] = useState<IMessage[]>([]);
   const [text, setText] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+
   const selectedChat = useDataStore((state) => state.selectedChat);
   const isSocketConnected = useDataStore((state) => state.isSocketConnected);
+  const typingTimeoutId = useRef<NodeJS.Timeout>();
   const refreshUserChats = useDataStore(
     (state) => state.actions.refreshUserChats
   );
@@ -44,6 +49,18 @@ export const SingleChat = () => {
     if (e.key !== "Enter") return;
 
     sendMsg();
+    clearTimeout(typingTimeoutId.current);
+    socket.emit("typing stop", selectedChat?._id);
+  };
+
+  const handleMessageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    clearTimeout(typingTimeoutId.current);
+    socket.emit("typing start", selectedChat?._id);
+    setText(e.target.value);
+
+    typingTimeoutId.current = setTimeout(() => {
+      socket.emit("typing stop", selectedChat?._id);
+    }, 2000);
   };
 
   useEffect(() => {
@@ -82,6 +99,11 @@ export const SingleChat = () => {
     };
   }, [isSocketConnected, selectedChat?._id]);
 
+  useEffect(() => {
+    socket.on("typing start", () => setIsTyping(true));
+    socket.on("typing stop", () => setIsTyping(false));
+  }, []);
+
   return (
     <Flex direction="column" gap={4} height="full">
       <Flex justify="space-between">
@@ -108,6 +130,17 @@ export const SingleChat = () => {
                 }
               />
             ))}
+            {isTyping && (
+              <Lottie
+                animationData={typingAnimation}
+                loop={true}
+                style={{
+                  height: 80,
+                  width: 100,
+                  marginTop: "-20px",
+                }}
+              />
+            )}
           </ScrollableFeed>
         </Flex>
         <InputGroup
@@ -127,7 +160,7 @@ export const SingleChat = () => {
             border="none"
             w="full"
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={handleMessageChange}
             onKeyDown={handleEnter}
           />
         </InputGroup>

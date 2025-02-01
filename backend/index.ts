@@ -55,4 +55,11 @@ io.on("connection", (socket) => {
   socket.on("send msg", (msg) => {
     io.to(msg.chatId._id).emit("receive msg", msg);
   });
+
+  socket.on("typing start", (chatId) => {
+    socket.to(chatId).emit("typing start");
+  });
+  socket.on("typing stop", (chatId) => {
+    socket.to(chatId).emit("typing stop");
+  });
 });
