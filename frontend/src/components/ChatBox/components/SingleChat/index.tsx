@@ -13,7 +13,7 @@ import {
 import { useDataStore } from "@/store";
 import { Flex, Heading, IconButton, Input, VStack } from "@chakra-ui/react";
 import React, { useEffect, useRef, useState } from "react";
-import { IoArrowForwardCircleSharp } from "react-icons/io5";
+import { IoArrowForwardCircleSharp, IoChevronBack } from "react-icons/io5";
 import ScrollableFeed from "react-scrollable-feed";
 import Lottie from "lottie-react";
 import typingAnimation from "@/animations/typing-animation.json";
@@ -34,6 +34,7 @@ export const SingleChat = () => {
   const refreshUserChats = useDataStore(
     (state) => state.actions.refreshUserChats
   );
+  const setStoreField = useDataStore((state) => state.actions.setStoreField);
 
   const sendMsg = async () => {
     setText("");
@@ -125,7 +126,16 @@ export const SingleChat = () => {
     <>
       <Flex direction="column" gap={4} height="full">
         <Flex justify="space-between" align="center">
-          <Heading>{selectedChat && getChatName(selectedChat)}</Heading>
+          <Flex align="center" gap={2}>
+            <IconButton
+              display={{ md: "none" }}
+              variant="ghost"
+              onClick={() => setStoreField("selectedChat", null)}
+            >
+              <IoChevronBack />
+            </IconButton>
+            <Heading>{selectedChat && getChatName(selectedChat)}</Heading>
+          </Flex>
           {selectedChat?.isGroupChat ? (
             <IconButton
               variant="ghost"

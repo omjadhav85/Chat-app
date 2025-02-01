@@ -6,7 +6,13 @@ export const ChatBox = () => {
   const selectedChat = useDataStore((state) => state.selectedChat);
 
   return (
-    <Box flex={7} borderRadius="4xl" backgroundColor="white" p="4">
+    <Box
+      display={{ base: selectedChat ? "block" : "none", md: "block" }}
+      flex={7}
+      borderRadius="4xl"
+      backgroundColor="white"
+      p="4"
+    >
       {selectedChat ? (
         <SingleChat />
       ) : (
