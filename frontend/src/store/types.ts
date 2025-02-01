@@ -5,6 +5,7 @@ export interface IStore {
   user: IUser | null;
   userChats: IChat[];
   selectedChat: IChat | null;
+  isSocketConnected: boolean;
 }
 
 export interface IActions {

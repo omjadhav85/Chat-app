@@ -1,6 +1,8 @@
 import { ChatListItem } from "@/components/ChatList/components/ChatListItem";
 import { InputGroup } from "@/components/ui/input-group";
-import { IChat } from "@/lib/types";
+import { socket } from "@/config/socketConfig";
+import { IChat, IMessage } from "@/lib/types";
+import { isLoggedInUser } from "@/lib/utils";
 import { useDataStore } from "@/store";
 import { Input, VStack } from "@chakra-ui/react";
 import { useEffect } from "react";
@@ -8,6 +10,9 @@ import { LuSearch } from "react-icons/lu";
 
 export const UserChatList = () => {
   const userChats = useDataStore((store) => store.userChats);
+  const isSocketConnected = useDataStore((store) => store.isSocketConnected);
+  const selectedChat = useDataStore((store) => store.selectedChat);
+
   const refreshUserChats = useDataStore(
     (store) => store.actions.refreshUserChats
   );
@@ -22,6 +27,29 @@ export const UserChatList = () => {
   useEffect(() => {
     refreshUserChats();
   }, []);
+
+  useEffect(() => {
+    if (isSocketConnected) {
+      socket.emit("join chats", userChats);
+    }
+  }, [isSocketConnected, userChats]);
+
+  useEffect(() => {
+    const handleReceiveMsg = (msg: IMessage) => {
+      if (isLoggedInUser(msg.sentBy) || selectedChat?._id === msg.chatId._id) {
+        return;
+      }
+
+      // TODO: add to notification here
+    };
+    if (isSocketConnected) {
+      socket.on("receive msg", handleReceiveMsg);
+    }
+
+    return () => {
+      socket.off("receive msg", handleReceiveMsg);
+    };
+  }, [isSocketConnected, selectedChat?._id]);
   return (
     <>
       <InputGroup endElement={<LuSearch />}>

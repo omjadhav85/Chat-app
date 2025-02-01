@@ -1,6 +1,7 @@
 import { Message } from "@/components/ChatBox/components/Message";
 import { InputGroup } from "@/components/ui/input-group";
 import axiosClient from "@/config/axiosConfig";
+import { socket } from "@/config/socketConfig";
 import { IMessage } from "@/lib/types";
 import {
   getChatName,
@@ -17,8 +18,8 @@ import ScrollableFeed from "react-scrollable-feed";
 export const SingleChat = () => {
   const [messages, setMessages] = useState<IMessage[]>([]);
   const [text, setText] = useState("");
-
   const selectedChat = useDataStore((state) => state.selectedChat);
+  const isSocketConnected = useDataStore((state) => state.isSocketConnected);
   const refreshUserChats = useDataStore(
     (state) => state.actions.refreshUserChats
   );
@@ -31,6 +32,8 @@ export const SingleChat = () => {
         chatId: selectedChat?._id,
       });
       setMessages((prev) => [...prev, res.data]);
+
+      socket.emit("send msg", res.data);
       refreshUserChats();
     } catch (error) {
       showError(error);
@@ -60,6 +63,24 @@ export const SingleChat = () => {
       fetchMessages();
     }
   }, [selectedChat]);
+
+  useEffect(() => {
+    const addReceivedMsg = (msg: IMessage) => {
+      if (isLoggedInUser(msg.sentBy) || selectedChat?._id !== msg.chatId._id) {
+        // should add notification here. Code for this is in another event handler for same "receive msg" even
+        return;
+      }
+
+      setMessages((prev) => [...prev, msg]);
+    };
+    if (isSocketConnected) {
+      socket.on("receive msg", addReceivedMsg);
+    }
+
+    return () => {
+      socket.off("receive msg", addReceivedMsg);
+    };
+  }, [isSocketConnected, selectedChat?._id]);
 
   return (
     <Flex direction="column" gap={4} height="full">

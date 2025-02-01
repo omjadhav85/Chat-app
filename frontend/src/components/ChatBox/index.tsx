@@ -1,7 +1,6 @@
 import { SingleChat } from "@/components/ChatBox/components/SingleChat";
 import { useDataStore } from "@/store";
 import { Box, Flex } from "@chakra-ui/react";
-import React from "react";
 
 export const ChatBox = () => {
   const selectedChat = useDataStore((state) => state.selectedChat);
