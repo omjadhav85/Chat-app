@@ -109,7 +109,7 @@ export const Signup = () => {
       <form onSubmit={handleSubmit}>
         <Fieldset.Root size="lg" maxW="md">
           <Fieldset.Content>
-            <Field label="First Name" required>
+            <Field label="Name" required>
               <Input
                 id="name"
                 name="name"
