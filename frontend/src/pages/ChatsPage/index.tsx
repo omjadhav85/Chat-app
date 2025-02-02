@@ -42,7 +42,7 @@ export const ChatsPage = () => {
         gap="1rem"
         bgColor="#F3F6FF"
         padding="1rem"
-        height="calc(100vh - 3.25rem)"
+        height="calc(100vh - 4.25rem)"
       >
         <ChatList />
         <ChatBox />

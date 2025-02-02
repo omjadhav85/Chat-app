@@ -1,9 +1,10 @@
-import { Grid, GridItem, Tabs } from "@chakra-ui/react";
+import { Box, Grid, GridItem, Heading, Image, Tabs } from "@chakra-ui/react";
 import { Login } from "../../components/Login";
 import { Signup } from "../../components/Signup";
 import { useEffect } from "react";
 import { USER_DATA } from "@/lib/constants";
 import { useNavigate } from "react-router-dom";
+import heroImg from "@/assets/hero-img.svg";
 
 export const LoginPage = () => {
   const navigate = useNavigate();
@@ -14,19 +15,48 @@ export const LoginPage = () => {
     if (userData) navigate("/chats");
   }, []);
   return (
-    <Grid templateColumns="2fr 1fr" height={"100%"}>
-      <GridItem bg="blue.500" />
+    <Grid
+      templateColumns={{
+        base: "1fr",
+        md: "2fr 1fr",
+      }}
+      height={"100%"}
+    >
       <GridItem
-        display="flex"
-        flexDirection="column"
-        // justifyContent="center"
-        gap={6}
-        p={4}
-        mt={10}
+        display="none"
+        md={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          pt: "2rem",
+          gap: 2,
+        }}
+        bg={"#3B82F6"}
       >
+        <Heading
+          fontSize="80px"
+          fontFamily="Dancing Script"
+          color="white"
+          mb={4}
+          lineHeight="inherit"
+        >
+          Chattify
+        </Heading>
+        <Box w={"70%"} h={"70%"}>
+          <Image src={heroImg} alt="Hero img" fit="contain" h="full" w="full" />
+        </Box>
+      </GridItem>
+      <GridItem display="flex" flexDirection="column" gap={6} p={4} pt={10}>
+        <Heading
+          fontSize="4xl"
+          fontFamily="Dancing Script"
+          textAlign="center"
+          md={{ display: "none" }}
+        >
+          Chattify
+        </Heading>
         <Tabs.Root
           variant="enclosed"
-          maxW="md"
           fitted
           defaultValue={"login"}
           colorPalette="blue"

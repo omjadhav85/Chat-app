@@ -56,7 +56,7 @@ export const Login = () => {
   return (
     <Box>
       <form onSubmit={handleSubmit}>
-        <Fieldset.Root size="lg" maxW="md">
+        <Fieldset.Root size="lg">
           <Fieldset.Content>
             <Field label="Email">
               <Input

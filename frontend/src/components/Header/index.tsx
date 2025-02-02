@@ -11,7 +11,9 @@ export const Header = () => {
       gap="1rem"
       p="0.5rem"
     >
-      <Heading>Chattify</Heading>
+      <Heading fontFamily="Dancing Script" fontSize="4xl" lineHeight="inherit">
+        Chattify
+      </Heading>
       <Flex gap={2} align="center">
         <NotificationBell />
         <UserOptions />
