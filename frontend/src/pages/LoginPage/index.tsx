@@ -1,8 +1,18 @@
 import { Grid, GridItem, Tabs } from "@chakra-ui/react";
 import { Login } from "../../components/Login";
 import { Signup } from "../../components/Signup";
+import { useEffect } from "react";
+import { USER_DATA } from "@/lib/constants";
+import { useNavigate } from "react-router-dom";
 
 export const LoginPage = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const userData = localStorage.getItem(USER_DATA);
+
+    if (userData) navigate("/chats");
+  }, []);
   return (
     <Grid templateColumns="2fr 1fr" height={"100%"}>
       <GridItem bg="blue.500" />
