@@ -8,6 +8,7 @@ import messageRoutes from "./routes/messageRoutes";
 import connectDB from "./config/db";
 import { errorHandler, notFound } from "./middlewares/errorMiddlewares";
 import { Server } from "socket.io";
+import path from "path";
 
 connectDB();
 
@@ -17,14 +18,26 @@ const PORT = process.env.PORT || 8000;
 app.use(express.json());
 app.use(cors());
 
-app.get("/", (req, res) => {
-  res.json({ msg: "Welcome to chat app api service" });
-});
-
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/chats", chatRoutes);
 app.use("/api/messages", messageRoutes);
+
+// deployment
+
+const __dirname1 = path.resolve();
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname1, "../frontend/dist")));
+  app.get("*", (req, res) => {
+    res.sendFile(path.resolve(__dirname1, "../frontend", "dist", "index.html"));
+  });
+} else {
+  app.get("/", (req, res) => {
+    res.json({ msg: "Welcome to chat app api service" });
+  });
+}
+
+//
 
 app.use(notFound);
 app.use(errorHandler);

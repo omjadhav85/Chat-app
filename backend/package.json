@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "tsx ./index.ts",
-    "dev": "tsx watch ./index.ts"
+    "dev": "tsx watch ./index.ts",
+    "build": "npm install && npm install  --prefix ../frontend && npm run build --prefix ../frontend"
   },
   "author": "Omkar Jadhav",
   "license": "ISC",

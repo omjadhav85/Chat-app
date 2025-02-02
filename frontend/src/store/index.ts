@@ -21,7 +21,7 @@ const initialState: IStore = {
 };
 
 // create store
-export const useDataStore = create<IStore & IActions>()((set, get) => ({
+export const useDataStore = create<IStore & IActions>()((set) => ({
   ...initialState,
   actions: {
     reset: () => {
