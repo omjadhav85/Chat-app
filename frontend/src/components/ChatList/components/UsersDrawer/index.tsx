@@ -40,6 +40,8 @@ export const UsersDrawer = ({ isOpen, onChange }: IProps) => {
       if (!userChats.some((chat) => chat._id === res.data._id)) {
         setStoreField("userChats", [res.data, ...userChats]);
       }
+
+      onChange({ open: false });
     } catch (error) {
       showError(error);
     }
