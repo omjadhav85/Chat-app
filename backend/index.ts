@@ -18,6 +18,13 @@ const PORT = process.env.PORT || 8000;
 app.use(express.json());
 app.use(cors());
 
+app.get("/api/health", (req, res) => {
+  res.json({
+    msg: "Hello from chat app backend",
+    time: new Date().toISOString(),
+  });
+});
+
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/chats", chatRoutes);
