@@ -10,7 +10,9 @@ export const initSocket = (server: HttpServer) => {
   io = new Server(server, {
     pingTimeout: 60000,
     cors: {
-      origin: "https://chat-app-e4z2.onrender.com",
+      // Set CLIENT_URL locally (e.g. http://localhost:5173); production
+      // falls back to the deployed frontend
+      origin: process.env.CLIENT_URL || "https://chat-app-e4z2.onrender.com",
     },
   });
 
@@ -20,7 +22,7 @@ export const initSocket = (server: HttpServer) => {
     try {
       const decoded = jwt.verify(
         socket.handshake.auth?.token,
-        process.env.JWT_SECRET!
+        process.env.JWT_SECRET!,
       ) as { _id: string };
       socket.data.userId = decoded._id;
       next();
@@ -60,7 +62,7 @@ export const emitToChatMembers = (
   memberIds: Types.ObjectId[],
   event: string,
   payload: unknown,
-  excludeUserId?: string
+  excludeUserId?: string,
 ) => {
   if (!io) return;
 
