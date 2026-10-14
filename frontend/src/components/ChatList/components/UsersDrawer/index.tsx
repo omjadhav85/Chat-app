@@ -27,6 +27,7 @@ export const UsersDrawer = ({ isOpen, onChange }: IProps) => {
   const [tempText, setTempText] = useState("");
 
   const upsertChat = useDataStore((store) => store.actions.upsertChat);
+  const setStoreField = useDataStore((store) => store.actions.setStoreField);
 
   const { users, fetchUsersBySearch } = useSearchUsers();
 
@@ -36,7 +37,10 @@ export const UsersDrawer = ({ isOpen, onChange }: IProps) => {
         id: selectedUser._id,
       });
 
+      // Add it to our own list and open it straight away. The other person
+      // only sees the chat once the first message is sent.
       upsertChat(res.data);
+      setStoreField("selectedChat", res.data);
 
       onChange({ open: false });
     } catch (error) {

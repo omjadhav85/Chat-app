@@ -64,9 +64,10 @@ export const accessChatController = expressAsyncHandler(
     try {
       const createdChat = await Chat.create(chatData);
 
-      // New chat: show it to the other person right away
-      const fullChat = await sendChatUpdate(createdChat._id);
-      res.status(200).send(fullChat);
+      // Don't notify the other person yet: the chat appears for them when
+      // the first message arrives (via "receive msg")
+      const fullChat = await getFullChat(createdChat._id);
+      res.status(200).send(fullChat?.chat);
     } catch (error: any) {
       res.status(400);
       throw new Error(error.message);
@@ -82,6 +83,8 @@ export const fetchUserChatsController = expressAsyncHandler(
           $eq: req.user!._id,
         },
       },
+      // Hide 1:1 chats until they have at least one message
+      $or: [{ isGroupChat: true }, { latestMsg: { $ne: null } }],
     })
       .populate("users", "-password")
       .populate("groupAdmin", "-password")
