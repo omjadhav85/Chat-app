@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { socket } from "@/config/socketConfig";
 import { USER_DATA } from "@/lib/constants";
 import { forceLogout } from "@/lib/session";
+import { useChatSocketEvents } from "@/hooks/useChatSocketEvents";
 import { useDataStore } from "@/store";
 import { Box } from "@chakra-ui/react";
 import { useEffect } from "react";
@@ -14,6 +15,8 @@ export const ChatsPage = () => {
   const navigate = useNavigate();
 
   const setStoreField = useDataStore((store) => store.actions.setStoreField);
+  useChatSocketEvents();
+
   useEffect(() => {
     const userData = localStorage.getItem(USER_DATA);
 

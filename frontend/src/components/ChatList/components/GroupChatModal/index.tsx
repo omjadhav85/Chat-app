@@ -38,11 +38,7 @@ export const GroupChatModal = ({
 
   const { fetchUsersBySearch, users, isLoading } = useSearchUsers();
 
-  const addChat = useDataStore((store) => store.actions.addChat);
-  const refreshUserChats = useDataStore(
-    (store) => store.actions.refreshUserChats
-  );
-  const setStoreField = useDataStore((store) => store.actions.setStoreField);
+  const upsertChat = useDataStore((store) => store.actions.upsertChat);
 
   const filteredUsers = useMemo(
     () =>
@@ -92,15 +88,16 @@ export const GroupChatModal = ({
           userIds: selectedUsers.map((obj) => obj._id),
         });
 
-        setStoreField("selectedChat", res.data);
-        refreshUserChats();
+        // Also updates the open chat; the socket event for the same chat
+        // is a no-op duplicate
+        upsertChat(res.data);
       } else {
         const res = await axiosClient.post<IChat>("/api/chats/group", {
           groupName: name,
           userIds: selectedUsers.map((obj) => obj._id),
         });
 
-        addChat(res.data);
+        upsertChat(res.data);
       }
       handleClose();
     } catch (error) {

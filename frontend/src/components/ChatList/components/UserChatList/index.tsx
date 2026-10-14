@@ -1,8 +1,7 @@
 import { ChatListItem } from "@/components/ChatList/components/ChatListItem";
 import { InputGroup } from "@/components/ui/input-group";
-import { socket } from "@/config/socketConfig";
-import { IChat, IMessage } from "@/lib/types";
-import { getChatName, isLoggedInUser } from "@/lib/utils";
+import { IChat } from "@/lib/types";
+import { getChatName } from "@/lib/utils";
 import { useDataStore } from "@/store";
 import { Input, VStack } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
@@ -12,9 +11,6 @@ export const UserChatList = () => {
   const [searchText, setSearchText] = useState("");
 
   const userChats = useDataStore((store) => store.userChats);
-  const isSocketConnected = useDataStore((store) => store.isSocketConnected);
-  const selectedChat = useDataStore((store) => store.selectedChat);
-  const notifications = useDataStore((store) => store.notifications);
 
   const refreshUserChats = useDataStore(
     (store) => store.actions.refreshUserChats
@@ -22,7 +18,6 @@ export const UserChatList = () => {
   const setSelectedChat = useDataStore(
     (store) => store.actions.setSelectedChat
   );
-  const setStoreField = useDataStore((store) => store.actions.setStoreField);
 
   const handleSelectChat = (chat: IChat) => {
     setSelectedChat(chat);
@@ -42,26 +37,11 @@ export const UserChatList = () => {
     );
   }, [searchText, userChats]);
 
+  // Initial load only; live updates come from useChatSocketEvents
   useEffect(() => {
     refreshUserChats();
   }, []);
 
-  useEffect(() => {
-    const handleReceiveMsg = (msg: IMessage) => {
-      if (isLoggedInUser(msg.sentBy) || selectedChat?._id === msg.chatId._id) {
-        return;
-      }
-
-      setStoreField("notifications", [...notifications, msg]);
-    };
-    if (isSocketConnected) {
-      socket.on("receive msg", handleReceiveMsg);
-    }
-
-    return () => {
-      socket.off("receive msg", handleReceiveMsg);
-    };
-  }, [isSocketConnected, notifications, selectedChat?._id, setStoreField]);
   return (
     <>
       <InputGroup endElement={<LuSearch />}>

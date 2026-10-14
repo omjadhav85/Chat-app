@@ -32,8 +32,8 @@ export const SingleChat = () => {
   const isSocketConnected = useDataStore((state) => state.isSocketConnected);
   const typingTimeoutId = useRef<NodeJS.Timeout>();
   const isTypingSent = useRef(false);
-  const refreshUserChats = useDataStore(
-    (state) => state.actions.refreshUserChats
+  const applyIncomingMsg = useDataStore(
+    (state) => state.actions.applyIncomingMsg
   );
   const setStoreField = useDataStore((state) => state.actions.setStoreField);
 
@@ -49,8 +49,9 @@ export const SingleChat = () => {
       });
       setMessages((prev) => [...prev, res.data]);
 
-      // The server broadcasts the new message to the other members
-      refreshUserChats();
+      // The server broadcasts the new message to the other members;
+      // update our own chat list locally instead of refetching it
+      applyIncomingMsg(res.data);
     } catch (error) {
       showError(error);
     }
@@ -99,7 +100,10 @@ export const SingleChat = () => {
     if (selectedChat) {
       fetchMessages();
     }
-  }, [selectedChat]);
+    // Depend on the id only: the chat object is replaced on live updates
+    // (rename, member changes), which shouldn't refetch the messages
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedChat?._id]);
 
   useEffect(() => {
     const addReceivedMsg = (msg: IMessage) => {

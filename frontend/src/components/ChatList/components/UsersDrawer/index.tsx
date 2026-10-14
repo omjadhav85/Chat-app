@@ -26,8 +26,7 @@ interface IProps {
 export const UsersDrawer = ({ isOpen, onChange }: IProps) => {
   const [tempText, setTempText] = useState("");
 
-  const userChats = useDataStore((store) => store.userChats);
-  const setStoreField = useDataStore((store) => store.actions.setStoreField);
+  const upsertChat = useDataStore((store) => store.actions.upsertChat);
 
   const { users, fetchUsersBySearch } = useSearchUsers();
 
@@ -37,9 +36,7 @@ export const UsersDrawer = ({ isOpen, onChange }: IProps) => {
         id: selectedUser._id,
       });
 
-      if (!userChats.some((chat) => chat._id === res.data._id)) {
-        setStoreField("userChats", [res.data, ...userChats]);
-      }
+      upsertChat(res.data);
 
       onChange({ open: false });
     } catch (error) {

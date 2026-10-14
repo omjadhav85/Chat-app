@@ -1,8 +1,25 @@
 import { Request, Response } from "express";
 import expressAsyncHandler from "express-async-handler";
 import Chat from "../models/chat";
-import { ObjectId } from "mongoose";
-import User from "../models/user";
+import { ObjectId, Types } from "mongoose";
+import { getFullChat } from "../utils/chatHelpers";
+import { emitToChatMembers } from "../socket";
+
+// Loads the full chat and pushes it to every current member (including the
+// user who made the change, so their other tabs stay in sync)
+const sendChatUpdate = async (chatId: Types.ObjectId) => {
+  const fullChat = await getFullChat(chatId);
+  if (!fullChat) return null;
+
+  emitToChatMembers(fullChat.memberIds, "chat updated", fullChat.chat);
+
+  return fullChat.chat;
+};
+
+// Tells users who were removed from a chat to drop it from their list
+const sendChatRemoved = (chatId: Types.ObjectId, userIds: Types.ObjectId[]) => {
+  emitToChatMembers(userIds, "chat removed", chatId.toString());
+};
 
 export const accessChatController = expressAsyncHandler(
   async (req: Request, res: Response) => {
@@ -13,7 +30,7 @@ export const accessChatController = expressAsyncHandler(
       throw new Error("Person id not sent in req body");
     }
 
-    const existingChat = await Chat.find({
+    const existingChat = await Chat.findOne({
       isGroupChat: false,
       $and: [
         {
@@ -27,12 +44,12 @@ export const accessChatController = expressAsyncHandler(
           },
         },
       ],
-    })
-      .populate("users", "-password")
-      .populate("latestMsg");
+    });
 
-    if (existingChat.length > 0) {
-      res.status(200).send(existingChat[0]);
+    // Chat already exists: return it without notifying anyone
+    if (existingChat) {
+      const fullChat = await getFullChat(existingChat._id);
+      res.status(200).send(fullChat?.chat);
       return;
     }
 
@@ -46,12 +63,11 @@ export const accessChatController = expressAsyncHandler(
 
     try {
       const createdChat = await Chat.create(chatData);
-      const FullChat = await Chat.findOne({ _id: createdChat._id }).populate(
-        "users",
-        "-password"
-      );
-      res.status(200).send(FullChat);
-    } catch (error) {
+
+      // New chat: show it to the other person right away
+      const fullChat = await sendChatUpdate(createdChat._id);
+      res.status(200).send(fullChat);
+    } catch (error: any) {
       res.status(400);
       throw new Error(error.message);
     }
@@ -60,7 +76,7 @@ export const accessChatController = expressAsyncHandler(
 
 export const fetchUserChatsController = expressAsyncHandler(
   async (req: Request, res: Response) => {
-    let data = await Chat.find({
+    const data = await Chat.find({
       users: {
         $elemMatch: {
           $eq: req.user!._id,
@@ -69,13 +85,11 @@ export const fetchUserChatsController = expressAsyncHandler(
     })
       .populate("users", "-password")
       .populate("groupAdmin", "-password")
-      .populate("latestMsg")
+      .populate({
+        path: "latestMsg",
+        populate: { path: "sentBy", select: "name pic email" },
+      })
       .sort({ updatedAt: -1 });
-
-    data = await User.populate(data, {
-      path: "latestMsg.sentBy",
-      select: "name pic email",
-    });
 
     res.send(data);
   }
@@ -104,9 +118,8 @@ export const createGroupChat = expressAsyncHandler(
       isGroupChat: true,
       users: userIds.concat(req.user!._id),
     });
-    const fullChat = await Chat.findById(data._id)
-      .populate("users", "-password")
-      .populate("groupAdmin", "-password");
+
+    const fullChat = await sendChatUpdate(data._id);
 
     res.send(fullChat);
   }
@@ -142,9 +155,11 @@ export const renameGroup = expressAsyncHandler(
     }
 
     groupData.name = newName;
-    const data = await groupData.save();
+    await groupData.save();
 
-    res.send(data);
+    const fullChat = await sendChatUpdate(groupData._id);
+
+    res.send(fullChat);
   }
 );
 
@@ -180,19 +195,16 @@ export const addToGroup = expressAsyncHandler(
       );
     }
 
-    const data = await Chat.findByIdAndUpdate(
-      groupId,
-      {
-        $addToSet: {
-          users: userId,
-        },
+    await Chat.findByIdAndUpdate(groupId, {
+      $addToSet: {
+        users: userId,
       },
-      {
-        new: true,
-      }
-    );
+    });
 
-    res.send(data);
+    // The new member receives the chat here too
+    const fullChat = await sendChatUpdate(groupData._id);
+
+    res.send(fullChat);
   }
 );
 
@@ -228,19 +240,16 @@ export const removeFromGroup = expressAsyncHandler(
       );
     }
 
-    const data = await Chat.findByIdAndUpdate(
-      groupId,
-      {
-        $pull: {
-          users: userId,
-        },
+    await Chat.findByIdAndUpdate(groupId, {
+      $pull: {
+        users: userId,
       },
-      {
-        new: true,
-      }
-    );
+    });
 
-    res.send(data);
+    const fullChat = await sendChatUpdate(groupData._id);
+    sendChatRemoved(groupData._id, [new Types.ObjectId(String(userId))]);
+
+    res.send(fullChat);
   }
 );
 
@@ -279,18 +288,20 @@ export const updateGroupController = expressAsyncHandler(
       throw new Error("You do not have permission to update this group!");
     }
 
-    // Update group members
-    const updatedGroup = await Chat.findByIdAndUpdate(
-      groupId,
-      {
-        $set: { users: userIds, name: groupName },
-      },
-      { new: true }
-    )
-      .populate("users", "-password")
-      .populate("groupAdmin", "-password")
-      .populate("latestMsg");
+    // Members in the old list but not the new one have been removed
+    const newMemberIds = new Set(userIds.map(String));
+    const removedUserIds = groupData.users.filter(
+      (id) => !newMemberIds.has(id.toString())
+    );
 
-    res.send(updatedGroup);
+    // Update group members
+    await Chat.findByIdAndUpdate(groupId, {
+      $set: { users: userIds, name: groupName },
+    });
+
+    const fullChat = await sendChatUpdate(groupData._id);
+    sendChatRemoved(groupData._id, removedUserIds);
+
+    res.send(fullChat);
   }
 );

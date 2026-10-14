@@ -35,12 +35,56 @@ export const useDataStore = create<IStore & IActions>()((set) => ({
       }));
     },
 
-    addChat: (newChat) => {
+    // Adds the chat at the top, or replaces it if it's already in the list.
+    // Safe to call repeatedly with the same chat (e.g. API response + socket)
+    upsertChat: (chat) => {
+      set((state) => {
+        const exists = state.userChats.some((c) => c._id === chat._id);
+
+        return {
+          userChats: exists
+            ? state.userChats.map((c) => (c._id === chat._id ? chat : c))
+            : [chat, ...state.userChats],
+          // keep the open chat in sync (e.g. renamed group, new members)
+          selectedChat:
+            state.selectedChat?._id === chat._id ? chat : state.selectedChat,
+        };
+      });
+    },
+
+    // Drops a chat the user no longer has access to (e.g. removed from group)
+    removeChat: (chatId) => {
       set((state) => ({
-        ...state,
-        userChats: [newChat, ...state.userChats],
+        userChats: state.userChats.filter((c) => c._id !== chatId),
+        selectedChat:
+          state.selectedChat?._id === chatId ? null : state.selectedChat,
+        notifications: state.notifications.filter(
+          (m) => m.chatId._id !== chatId
+        ),
       }));
     },
+
+    // Updates the chat's latest message preview and moves it to the top
+    applyIncomingMsg: (msg) => {
+      set((state) => {
+        const existing = state.userChats.find((c) => c._id === msg.chatId._id);
+        // Fall back to the chat sent along with the message if it isn't
+        // in the list yet
+        const updatedChat = {
+          ...(existing ?? msg.chatId),
+          latestMsg: msg,
+          updatedAt: msg.createdAt,
+        };
+
+        return {
+          userChats: [
+            updatedChat,
+            ...state.userChats.filter((c) => c._id !== msg.chatId._id),
+          ],
+        };
+      });
+    },
+
     setSelectedChat: (chat) => {
       set((state) => ({
         ...state,
