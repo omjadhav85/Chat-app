@@ -13,6 +13,7 @@ import { ISignUpReqDTO, ISignUpResponseDTO } from "@/components/Signup/types";
 import { useNavigate } from "react-router-dom";
 import { USER_DATA } from "@/lib/constants";
 import { useDataStore } from "@/store";
+import { showError } from "@/lib/utils";
 
 interface IData {
   name: string;
@@ -53,12 +54,28 @@ export const Signup = () => {
 
       return;
     }
-    // upload image to cloudinary first
-    let imgUrl;
+    // Validate the image before doing any network calls
+    if (
+      data.img &&
+      data.img.type !== "image/jpeg" &&
+      data.img.type !== "image/png"
+    ) {
+      toaster.create({
+        title: `Only png and jpeg are supported`,
+        type: "error",
+      });
+
+      return;
+    }
 
     setLoading(true);
-    if (data.img) {
-      if (data.img.type === "image/jpeg" || data.img.type === "image/png") {
+
+    // Upload and signup share one try/finally so a failure in either
+    // shows an error and never leaves the button stuck loading
+    try {
+      // upload image to cloudinary first
+      let imgUrl;
+      if (data.img) {
         const formData = new FormData();
         formData.append("file", data.img);
         formData.append("upload_preset", "chat-app");
@@ -68,16 +85,9 @@ export const Signup = () => {
           "https://api.cloudinary.com/v1_1/omjcloud/image/upload",
           formData
         );
-        imgUrl = response.data.url.toString();
-      } else {
-        toaster.create({
-          title: `Only png and jpeg are supported`,
-          type: "error",
-        });
+        imgUrl = response.data.secure_url as string;
       }
-    }
 
-    try {
       const body: ISignUpReqDTO = {
         name: data.name,
         email: data.email,
@@ -99,9 +109,10 @@ export const Signup = () => {
       });
     } catch (err) {
       console.error("error: ", err);
+      showError(err);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (

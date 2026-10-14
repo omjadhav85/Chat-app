@@ -69,11 +69,13 @@ export const getChatMsgsController = expressAsyncHandler(
     }
 
     try {
+      // Oldest first. chatId is left unpopulated since every message
+      // belongs to the same chat; the client already has the chat object
       const data = await Message.find({
         chatId: chat._id,
       })
-        .populate("sentBy", "name pic email")
-        .populate("chatId");
+        .sort({ createdAt: 1 })
+        .populate("sentBy", "name pic email");
 
       res.json(data);
     } catch (error: any) {

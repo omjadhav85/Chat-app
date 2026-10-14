@@ -3,6 +3,7 @@ import { ChatList } from "@/components/ChatList";
 import { Header } from "@/components/Header";
 import { socket } from "@/config/socketConfig";
 import { USER_DATA } from "@/lib/constants";
+import { forceLogout } from "@/lib/session";
 import { useDataStore } from "@/store";
 import { Box } from "@chakra-ui/react";
 import { useEffect } from "react";
@@ -23,14 +24,25 @@ export const ChatsPage = () => {
 
     // The server identifies the user from the JWT sent in the handshake
     // and joins their personal room, so no "setup" event is needed
-    socket.connect();
-    socket.on("connected", () => {
+    const handleConnected = () => {
       console.log("socket connected");
 
       setStoreField("isSocketConnected", true);
-    });
-    // socket.on("typing", () => setIsTyping(true));
-    // socket.on("stop typing", () => setIsTyping(false));
+    };
+
+    // The server rejects the handshake when the token is expired or invalid
+    const handleConnectError = (err: Error) => {
+      if (err.message === "Unauthorized") forceLogout();
+    };
+
+    socket.on("connected", handleConnected);
+    socket.on("connect_error", handleConnectError);
+    socket.connect();
+
+    return () => {
+      socket.off("connected", handleConnected);
+      socket.off("connect_error", handleConnectError);
+    };
 
     // eslint-disable-next-line
   }, []);

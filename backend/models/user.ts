@@ -43,10 +43,10 @@ const userSchema = new Schema<IUser>(
 );
 
 // will encrypt password every time its saved
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) {
-    next();
-  }
+userSchema.pre("save", async function () {
+  // Skip hashing when the password is unchanged, otherwise an already
+  // hashed password would be hashed again on every save
+  if (!this.isModified("password")) return;
 
   try {
     const salt = await bcrypt.genSalt(10);

@@ -1,14 +1,20 @@
 import { Request, Response } from "express";
 import User from "../models/user";
 
+// Escapes regex special characters so user input is matched literally
+const escapeRegex = (text: string) =>
+  text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 export const getAllUsersController = async (req: Request, res: Response) => {
-  const search = req.query.search as string | null;
+  const search =
+    typeof req.query.search === "string" ? req.query.search.trim() : "";
+  const searchRegex = new RegExp(escapeRegex(search), "i");
   const query = search
     ? {
         $or: [
           // search name and email fields
-          { name: { $regex: new RegExp(search, "i") } },
-          { email: { $regex: new RegExp(search, "i") } },
+          { name: { $regex: searchRegex } },
+          { email: { $regex: searchRegex } },
         ],
       }
     : {};

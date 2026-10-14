@@ -38,6 +38,9 @@ export const SingleChat = () => {
   const setStoreField = useDataStore((state) => state.actions.setStoreField);
 
   const sendMsg = async () => {
+    // Don't send blank messages
+    if (!text.trim()) return;
+
     setText("");
     try {
       const res = await axiosClient.post<IMessage>(`/api/messages`, {
