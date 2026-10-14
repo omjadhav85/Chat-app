@@ -7,7 +7,7 @@ import chatRoutes from "./routes/chatRoutes";
 import messageRoutes from "./routes/messageRoutes";
 import connectDB from "./config/db";
 import { errorHandler, notFound } from "./middlewares/errorMiddlewares";
-import { Server } from "socket.io";
+import { initSocket } from "./socket";
 import path from "path";
 
 connectDB();
@@ -52,34 +52,4 @@ app.use(errorHandler);
 const server = app.listen(PORT, () =>
   console.log("Server has started on port: ", PORT)
 );
-const io = new Server(server, {
-  pingTimeout: 60000,
-  cors: {
-    origin: "https://chat-app-e4z2.onrender.com",
-    // credentials: true,
-  },
-});
-
-io.on("connection", (socket) => {
-  socket.on("setup", (user) => {
-    socket.join(user._id);
-    socket.emit("connected");
-  });
-
-  socket.on("join chats", (chats) => {
-    const chatIds = chats.map((chat) => chat._id);
-
-    socket.join(chatIds);
-  });
-
-  socket.on("send msg", (msg) => {
-    io.to(msg.chatId._id).emit("receive msg", msg);
-  });
-
-  socket.on("typing start", (chatId) => {
-    socket.to(chatId).emit("typing start", chatId);
-  });
-  socket.on("typing stop", (chatId) => {
-    socket.to(chatId).emit("typing stop", chatId);
-  });
-});
+initSocket(server);

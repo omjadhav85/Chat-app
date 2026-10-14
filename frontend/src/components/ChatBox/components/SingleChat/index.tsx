@@ -31,6 +31,7 @@ export const SingleChat = () => {
   const selectedChat = useDataStore((state) => state.selectedChat);
   const isSocketConnected = useDataStore((state) => state.isSocketConnected);
   const typingTimeoutId = useRef<NodeJS.Timeout>();
+  const isTypingSent = useRef(false);
   const refreshUserChats = useDataStore(
     (state) => state.actions.refreshUserChats
   );
@@ -45,7 +46,7 @@ export const SingleChat = () => {
       });
       setMessages((prev) => [...prev, res.data]);
 
-      socket.emit("send msg", res.data);
+      // The server broadcasts the new message to the other members
       refreshUserChats();
     } catch (error) {
       showError(error);
@@ -56,18 +57,27 @@ export const SingleChat = () => {
     if (e.key !== "Enter") return;
 
     sendMsg();
+    stopTyping();
+  };
+
+  const stopTyping = () => {
     clearTimeout(typingTimeoutId.current);
+    isTypingSent.current = false;
     socket.emit("typing stop", selectedChat?._id);
   };
 
   const handleMessageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     clearTimeout(typingTimeoutId.current);
-    socket.emit("typing start", selectedChat?._id);
     setText(e.target.value);
 
-    typingTimeoutId.current = setTimeout(() => {
-      socket.emit("typing stop", selectedChat?._id);
-    }, 2000);
+    // Emit "typing start" once per typing burst instead of on every keystroke,
+    // since the server does a membership lookup for each typing event
+    if (!isTypingSent.current) {
+      isTypingSent.current = true;
+      socket.emit("typing start", selectedChat?._id);
+    }
+
+    typingTimeoutId.current = setTimeout(stopTyping, 2000);
   };
 
   useEffect(() => {

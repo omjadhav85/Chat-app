@@ -47,12 +47,6 @@ export const UserChatList = () => {
   }, []);
 
   useEffect(() => {
-    if (isSocketConnected) {
-      socket.emit("join chats", userChats);
-    }
-  }, [isSocketConnected, userChats]);
-
-  useEffect(() => {
     const handleReceiveMsg = (msg: IMessage) => {
       if (isLoggedInUser(msg.sentBy) || selectedChat?._id === msg.chatId._id) {
         return;

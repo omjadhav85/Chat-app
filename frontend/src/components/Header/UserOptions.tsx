@@ -11,6 +11,7 @@ import { useDataStore } from "@/store";
 import { USER_DATA } from "@/lib/constants";
 import { useNavigate } from "react-router-dom";
 import { UserProfileModal } from "@/components/UserProfileModal";
+import { socket } from "@/config/socketConfig";
 
 export const UserOptions = () => {
   const navigate = useNavigate();
@@ -21,6 +22,9 @@ export const UserOptions = () => {
   const reset = useDataStore((store) => store.actions.reset);
 
   const handleLogout = () => {
+    // Close the socket so it stops receiving this user's events; the next
+    // login reconnects with the new user's token
+    socket.disconnect();
     localStorage.removeItem(USER_DATA);
     reset();
     navigate("/");

@@ -127,20 +127,22 @@ export const renameGroup = expressAsyncHandler(
       throw new Error("Please give a name to the group");
     }
 
-    const data = await Chat.findByIdAndUpdate(
-      groupId,
-      {
-        name: newName,
-      },
-      {
-        new: true,
-      }
-    );
+    // Only group chats can be renamed, and only by the group admin
+    const groupData = await Chat.findById(groupId);
 
-    if (!data) {
+    if (!groupData || !groupData.isGroupChat) {
       res.status(404);
-      throw new Error("Chat with given Id not found!");
+      throw new Error("Group chat with given Id not found!");
     }
+
+    const isAdmin = groupData.groupAdmin?.equals(req.user!._id);
+    if (!isAdmin) {
+      res.status(401);
+      throw new Error("You do not have permission to rename this group!");
+    }
+
+    groupData.name = newName;
+    const data = await groupData.save();
 
     res.send(data);
   }

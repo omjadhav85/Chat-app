@@ -3,18 +3,30 @@ import expressAsyncHandler from "express-async-handler";
 import Message from "../models/message";
 import Chat from "../models/chat";
 import User from "../models/user";
+import { findChatForMember } from "../utils/chatHelpers";
+import { emitToChatMembers } from "../socket";
 
 export const sendMsgController = expressAsyncHandler(
   async (req: Request, res: Response) => {
     const { content, chatId } = req.body;
 
-    if (!content || !chatId) throw new Error("Invalid request body");
+    if (typeof content !== "string" || !content.trim() || !chatId) {
+      res.status(400);
+      throw new Error("Invalid request body");
+    }
+
+    // Only members of a chat are allowed to post in it
+    const chat = await findChatForMember(chatId, req.user!._id);
+    if (!chat) {
+      res.status(404);
+      throw new Error("Chat not found");
+    }
 
     try {
       const msgData = {
-        chatId: chatId,
+        chatId: chat._id,
         content: content,
-        sentBy: req.user?._id,
+        sentBy: req.user!._id,
       };
       let newMsg = await Message.create(msgData);
 
@@ -26,7 +38,16 @@ export const sendMsgController = expressAsyncHandler(
         select: "name pic email",
       });
 
-      await Chat.findByIdAndUpdate(chatId, { latestMsg: newMsg });
+      await Chat.findByIdAndUpdate(chat._id, { latestMsg: newMsg });
+
+      // Broadcast from the server (not the client) so the message can't be
+      // spoofed, delivered to every other member's personal room
+      emitToChatMembers(
+        chat.users,
+        "receive msg",
+        newMsg,
+        req.user!._id.toString()
+      );
 
       res.json(newMsg);
     } catch (error: any) {
@@ -40,11 +61,16 @@ export const getChatMsgsController = expressAsyncHandler(
   async (req: Request, res: Response) => {
     const { chatId } = req.params;
 
-    if (!chatId) throw new Error("Invalid request body");
+    // Only members of a chat are allowed to read its messages
+    const chat = await findChatForMember(chatId, req.user!._id);
+    if (!chat) {
+      res.status(404);
+      throw new Error("Chat not found");
+    }
 
     try {
       const data = await Message.find({
-        chatId: chatId,
+        chatId: chat._id,
       })
         .populate("sentBy", "name pic email")
         .populate("chatId");

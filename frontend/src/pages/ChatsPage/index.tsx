@@ -21,8 +21,9 @@ export const ChatsPage = () => {
       return;
     }
 
+    // The server identifies the user from the JWT sent in the handshake
+    // and joins their personal room, so no "setup" event is needed
     socket.connect();
-    socket.emit("setup", user);
     socket.on("connected", () => {
       console.log("socket connected");
 
